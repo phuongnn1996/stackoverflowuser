@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp">
+
+   <ProgressBar
+       android:id="@+id/pb_loading"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_centerInParent="true"
+       android:visibility="gone"/>
+
+   <Spinner
+       android:id="@+id/sp_filter"
+       android:layout_width="match_parent"
+       android:layout_height="40dp"
+       android:layout_marginTop="10dp"
+       android:entries="@array/filter_arrays" />
+
+   <android.support.v7.widget.RecyclerView
+       android:id="@+id/rv_user"
+       android:layout_width="match_parent"
+       android:layout_height="match_parent"
+       android:layout_below="@+id/sp_filter"/>
+
+   <TextView
+       android:id="@+id/tv_empty"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:text="@string/empty_item"
+       android:layout_centerInParent="true"
+       android:textColor="@color/color_grey"
+       android:textSize="16sp"
+       android:visibility="gone"/>
+
+</RelativeLayout>
