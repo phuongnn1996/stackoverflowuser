@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_post_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Post ID: 123456"
+            android:textColor="@color/color_grey"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/tv_reputation_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Post Upvoted"
+            android:textColor="@color/color_grey"
+            android:textSize="14sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tv_reputation_change"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Change"
+            android:textColor="@color/color_grey"
+            android:textSize="14sp"/>
+
+        <TextView
+            android:id="@+id/tv_reputation_created_at"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Created At: "
+            android:textColor="@color/color_grey"
+            android:textSize="14sp"
+            android:layout_gravity="end"
+            android:textStyle="italic"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

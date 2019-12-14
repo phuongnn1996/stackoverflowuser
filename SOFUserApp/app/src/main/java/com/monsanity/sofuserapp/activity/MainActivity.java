@@ -1,10 +1,12 @@
 package com.monsanity.sofuserapp.activity;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -15,9 +17,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.monsanity.sofuserapp.IBookmarkUserListener;
+import com.monsanity.sofuserapp.IOnClickUserListener;
 import com.monsanity.sofuserapp.R;
+import com.monsanity.sofuserapp.adapter.ReputationListAdapter;
 import com.monsanity.sofuserapp.adapter.UserListAdapter;
 import com.monsanity.sofuserapp.retrofit.ApiUtils;
+import com.monsanity.sofuserapp.retrofit.response.ReputationDetailItem;
+import com.monsanity.sofuserapp.retrofit.response.ReputationItem;
 import com.monsanity.sofuserapp.retrofit.response.UserDetailItem;
 import com.monsanity.sofuserapp.retrofit.response.UserListItem;
 import com.monsanity.sofuserapp.utils.Constant;
@@ -32,7 +38,7 @@ import retrofit2.Response;
 
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 
-public class MainActivity extends AppCompatActivity implements IBookmarkUserListener {
+public class MainActivity extends AppCompatActivity implements IBookmarkUserListener, IOnClickUserListener {
 
     private RecyclerView mRvUser;
     private UserListAdapter mUserListAdapter;
@@ -40,8 +46,8 @@ public class MainActivity extends AppCompatActivity implements IBookmarkUserList
     private Spinner mSpFilter;
     private ProgressBar mPbLoading;
     private TextView mTvEmpty;
-    private int mPageIndex, mPageSize;
-    boolean mIsLoading = false;
+    private int mUserPageIndex, mReputationPageIndex, mPageSize;
+    boolean mIsLoadingUser = false, mIsLoadingReputation = false;
     private TinyDB mTinyDB;
     private ArrayList<Integer> mBookmarkedIdList;
 
@@ -64,13 +70,19 @@ public class MainActivity extends AppCompatActivity implements IBookmarkUserList
         mTinyDB = new TinyDB(this);
         mBookmarkedIdList = new ArrayList<>();
         mBookmarkedIdList.addAll(mTinyDB.getListInt(Constant.KEY_BOOKMARKED_LIST));
-        mPageIndex = 1;
+        mUserPageIndex = 1;
         mPageSize = 30;
         mLayoutManager = new LinearLayoutManager(this);
         mRvUser.setLayoutManager(mLayoutManager);
         List<UserDetailItem> userList = new ArrayList<>();
-        mUserListAdapter = new UserListAdapter(this, userList, this);
+        mUserListAdapter = new UserListAdapter(
+                this,
+                userList,
+                this,
+                this);
         mRvUser.setAdapter(mUserListAdapter);
+        mRvUser.addItemDecoration(new DividerItemDecoration(
+                this, DividerItemDecoration.VERTICAL));
 
         mRvUser.addOnScrollListener(new RecyclerView.OnScrollListener() {
 
@@ -79,10 +91,10 @@ public class MainActivity extends AppCompatActivity implements IBookmarkUserList
                 super.onScrollStateChanged(recyclerView, newState);
                 int lastPosition = mLayoutManager.findLastVisibleItemPosition();
                 if (newState == SCROLL_STATE_IDLE && lastPosition >= mUserListAdapter.getItemCount() - 1) {
-                    if (!mIsLoading) {
-                        mPageIndex++;
+                    if (!mIsLoadingUser) {
+                        mUserPageIndex++;
                         getUserList(false, false);
-                        mIsLoading = true;
+                        mIsLoadingUser = true;
                     }
                 }
             }
@@ -106,11 +118,11 @@ public class MainActivity extends AppCompatActivity implements IBookmarkUserList
     private void getUserList(final boolean isClear, boolean isShowLoading) {
         if (isShowLoading) mPbLoading.setVisibility(View.VISIBLE);
         if (isClear) {
-            mPageIndex = 1;
+            mUserPageIndex = 1;
             mUserListAdapter.clearData();
         }
         ApiUtils.getRetrofitService()
-                .doGetUserList(mPageIndex, mPageSize, Constant.SITE)
+                .doGetUserList(mUserPageIndex, mPageSize, Constant.SITE)
                 .enqueue(new Callback<UserListItem>() {
             @Override
             public void onResponse(Call<UserListItem> call, Response<UserListItem> response) {
@@ -122,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements IBookmarkUserList
                         mUserListAdapter.setUserList(filteredList);
                         // Check if bookmark list is loaded completely
                         if (mUserListAdapter.getItemCount() < mBookmarkedIdList.size()) {
-                            mPageIndex++;
+                            mUserPageIndex++;
                             getUserList(false, true);
                         }
                     } else {
@@ -136,16 +148,38 @@ public class MainActivity extends AppCompatActivity implements IBookmarkUserList
                 }
 
                 mPbLoading.setVisibility(View.GONE);
-                mIsLoading = false;
+                mIsLoadingUser = false;
             }
 
             @Override
             public void onFailure(Call<UserListItem> call, Throwable t) {
                 mPbLoading.setVisibility(View.GONE);
-                mIsLoading = false;
+                mIsLoadingUser = false;
                 Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void getUserReputation(final int userId, final String name, boolean isShowLoading) {
+        if (isShowLoading) mPbLoading.setVisibility(View.VISIBLE);
+        ApiUtils.getRetrofitService()
+                .doGetUserReputation(userId, mReputationPageIndex, mPageSize, Constant.SITE)
+                .enqueue(new Callback<ReputationItem>() {
+                    @Override
+                    public void onResponse(Call<ReputationItem> call, Response<ReputationItem> response) {
+                        if (response.body() != null) {
+                            showReputationListDialog(userId, name, response.body().getReputationDetailItems());
+                        }
+                        mPbLoading.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onFailure(Call<ReputationItem> call, Throwable t) {
+                        mPbLoading.setVisibility(View.GONE);
+                        mIsLoadingUser = false;
+                        Toast.makeText(MainActivity.this, t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     @Override
@@ -156,6 +190,12 @@ public class MainActivity extends AppCompatActivity implements IBookmarkUserList
     @Override
     public void onRemoveUser(int position) {
         confirmRemoveBookmark(position);
+    }
+
+    @Override
+    public void onClickUser(int userId, String name) {
+        mReputationPageIndex = 1;
+        getUserReputation(userId, name, true);
     }
 
     private void bookmarkUser(int position, boolean isAdd) {
@@ -233,4 +273,40 @@ public class MainActivity extends AppCompatActivity implements IBookmarkUserList
             }
         }
     }
+
+    private void showReputationListDialog(final int userId, final String name,
+                                          List<ReputationDetailItem> reputationList) {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.reputation_layout);
+        dialog.setCancelable(true);
+
+        TextView tvName = dialog.findViewById(R.id.tv_reputation_name);
+        tvName.setText(name);
+        RecyclerView rvReputation = dialog.findViewById(R.id.rv_reputation);
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        final ReputationListAdapter adapter = new ReputationListAdapter(this, reputationList);
+        rvReputation.setAdapter(adapter);
+        rvReputation.setLayoutManager(layoutManager);
+        rvReputation.addItemDecoration(new DividerItemDecoration(
+                this, DividerItemDecoration.VERTICAL));
+
+        rvReputation.addOnScrollListener(new RecyclerView.OnScrollListener() {
+
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                int lastPosition = layoutManager.findLastVisibleItemPosition();
+                if (newState == SCROLL_STATE_IDLE && lastPosition >= adapter.getItemCount() - 1) {
+                    if (!mIsLoadingReputation) {
+                        mUserPageIndex++;
+                        getUserReputation(userId, name, false);
+                        mIsLoadingReputation = true;
+                    }
+                }
+            }
+        });
+
+        dialog.show();
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.monsanity.sofuserapp.retrofit;
 
+import com.monsanity.sofuserapp.retrofit.response.ReputationItem;
 import com.monsanity.sofuserapp.retrofit.response.UserListItem;
 
 import retrofit2.Call;
@@ -15,9 +16,9 @@ public interface APIService {
                                      @Query("site") String site);
 
     @GET(ApiUtils.USER_REPUTATION)
-    Call<UserListItem> doGetUserReputation(@Path("id") Integer id,
-                                           @Query("page") Integer page,
-                                           @Query("pagesize") Integer pagesize,
-                                           @Query("site") String site);
+    Call<ReputationItem> doGetUserReputation(@Path("id") Integer id,
+                                             @Query("page") Integer page,
+                                             @Query("pagesize") Integer pagesize,
+                                             @Query("site") String site);
 
 }

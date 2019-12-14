@@ -7,6 +7,10 @@
     <string name="confirm_remove">Do you want to remove this user from bookmark?</string>
     <string name="confirm_yes">Yes</string>
     <string name="confirm_cancel">Cancel</string>
+    <string name="reputation_post_id">Post ID: %d</string>
+    <string name="reputation_change">Change: %d</string>
+    <string name="reputation_created_at">Created at %s</string>
+    <string name="reputation_history">Reputation History</string>
     <string-array name="filter_arrays">
         <item>All</item>
         <item>Bookmarked</item>

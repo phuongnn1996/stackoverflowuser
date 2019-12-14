@@ -17,7 +17,7 @@ public class ReputationDetailItem {
     private Integer postId;
     @SerializedName("creation_date")
     @Expose
-    private Integer creationDate;
+    private Long creationDate;
     @SerializedName("user_id")
     @Expose
     private Integer userId;
@@ -46,11 +46,11 @@ public class ReputationDetailItem {
         this.postId = postId;
     }
 
-    public Integer getCreationDate() {
+    public Long getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Integer creationDate) {
+    public void setCreationDate(Long creationDate) {
         this.creationDate = creationDate;
     }
 

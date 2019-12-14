@@ -11,10 +11,11 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.monsanity.sofuserapp.IBookmarkUserListener;
+import com.monsanity.sofuserapp.IOnClickUserListener;
 import com.monsanity.sofuserapp.R;
 import com.monsanity.sofuserapp.retrofit.response.UserDetailItem;
-import com.monsanity.sofuserapp.utils.Constant;
-import java.util.Calendar;
+import com.monsanity.sofuserapp.utils.Utils;
+
 import java.util.List;
 
 public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHolder> {
@@ -22,12 +23,15 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
     private Activity mActivity;
     private List<UserDetailItem> mUserList;
     private IBookmarkUserListener mBookmarkListener;
+    private IOnClickUserListener mOnClickListener;
 
     public UserListAdapter(Activity mActivity, List<UserDetailItem> userList,
-                           IBookmarkUserListener bookmarkListener) {
+                           IBookmarkUserListener bookmarkListener,
+                           IOnClickUserListener onClickUserListener) {
         this.mActivity = mActivity;
         this.mUserList = userList;
         this.mBookmarkListener = bookmarkListener;
+        this.mOnClickListener = onClickUserListener;
     }
 
     @NonNull
@@ -47,7 +51,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
         viewHolder.tvLocation.setText(item.getLocation());
         viewHolder.tvLastAccess.setText(String.format(
                 mActivity.getResources().getString(R.string.access_date),
-                getFormattedDate(item.getLastAccessDate())));
+                Utils.getFormattedDate(item.getLastAccessDate())));
         Glide.with(mActivity)
                 .load(item.getProfileImage())
                 .into(viewHolder.ivAvatar);
@@ -92,12 +96,6 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
         }
     }
 
-    private String getFormattedDate(Long timeStamp) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(timeStamp * 1000L);
-        return DateFormat.format(Constant.DATE_FORMAT, cal).toString();
-    }
-
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private ImageView ivAvatar, ivBookMark;
@@ -122,7 +120,9 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHo
                     bookmarkUser(getAdapterPosition());
                     break;
                 default:
-
+                    mOnClickListener.onClickUser(
+                            mUserList.get(getAdapterPosition()).getUserId(),
+                            mUserList.get(getAdapterPosition()).getDisplayName());
                     break;
             }
         }
